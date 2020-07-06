@@ -108,36 +108,36 @@ namespace LojaAPI.Controllers
 
         [RequestSizeLimit(40000000)]
         [HttpPost("imageUp")]
-        public async Task<IActionResult> UploadImage(IFormFile arquivo, string imgNome)
+        public async Task<IActionResult> UploadImage()
         {
-            if (arquivo.Length > 0)
+            var file = Request.Form.Files[0];
+            if (file.Length > 0)
             {
                 try
                 {
-                    imgNome = Guid.NewGuid() + "_";
-                    imgNome = Path.Combine(imgNome, arquivo.FileName);
 
-                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", imgNome);
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", file.FileName);
 
                     if (System.IO.File.Exists(filePath))
                     {
-                        return BadRequest();
+                        return BadRequest("Já existente");
                     }
 
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
-                        await arquivo.CopyToAsync(stream);
+                        await file.CopyToAsync(stream);
                         await stream.FlushAsync();
                         
                     }
+                    return Ok();
                 }
                 catch (Exception)
                 {
                     return StatusCode(500);
                 }
 
-            }
-            return Ok();
+            }else { return BadRequest("Erro ao identificar arquivo, possivelmente não veio"); }
+           
         }
     }
 }
