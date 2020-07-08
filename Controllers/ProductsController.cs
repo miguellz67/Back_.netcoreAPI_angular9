@@ -54,22 +54,39 @@ namespace LojaAPI.Controllers
                 return BadRequest();
             }
 
-            var produtoAtualizacao = await _context.Products.FindAsync(id);
+            var productUpdate = await _context.Products.FindAsync(id);
             if (!ModelState.IsValid) return BadRequest();
 
-            produtoAtualizacao.CategoryId = product.CategoryId;
-            produtoAtualizacao.Name = product.Name;
-            produtoAtualizacao.Description = product.Description;
-            produtoAtualizacao.Price = product.Price;
-            produtoAtualizacao.Brand = product.Brand;
-            produtoAtualizacao.Model = product.Model;
-            
-            _context.Products.Update(produtoAtualizacao);
-            await _context.SaveChangesAsync();
-            
+            if (!String.IsNullOrEmpty(product.Image))
+            {
+                if (!System.IO.File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", product.Image)))
+                {
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", productUpdate.Image);
 
-          
-             return NoContent();
+                    System.IO.File.Delete(filePath);
+
+                    productUpdate.Image = product.Image;
+                }
+            }
+            else
+            {
+                productUpdate.Image = productUpdate.Image;
+            }
+
+            productUpdate.CategoryId = product.CategoryId;
+            productUpdate.Name = product.Name;
+            productUpdate.Description = product.Description;
+            productUpdate.Price = product.Price;
+            productUpdate.Brand = product.Brand;
+            productUpdate.Model = product.Model;
+            productUpdate.Amount = product.Amount;
+
+
+            _context.Products.Update(productUpdate);
+            await _context.SaveChangesAsync();
+
+
+            return NoContent();
         }
 
         // POST: api/Products
@@ -95,6 +112,15 @@ namespace LojaAPI.Controllers
                 return NotFound();
             }
 
+            string imgNm = product.Image;
+
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", imgNm);
+
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
 
@@ -110,34 +136,25 @@ namespace LojaAPI.Controllers
         [HttpPost("imageUp")]
         public async Task<IActionResult> UploadImage()
         {
-            var file = Request.Form.Files[0];
-            if (file.Length > 0)
+            try
             {
-                try
+                var file = Request.Form.Files[0];
+
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", file.FileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
                 {
+                    await file.CopyToAsync(stream);
+                    await stream.FlushAsync();
 
-                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", file.FileName);
-
-                    if (System.IO.File.Exists(filePath))
-                    {
-                        return BadRequest("Já existente");
-                    }
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await file.CopyToAsync(stream);
-                        await stream.FlushAsync();
-                        
-                    }
-                    return Ok();
-                }
-                catch (Exception)
-                {
-                    return StatusCode(500);
                 }
 
-            }else { return BadRequest("Erro ao identificar arquivo, possivelmente não veio"); }
-           
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
+
         }
     }
 }

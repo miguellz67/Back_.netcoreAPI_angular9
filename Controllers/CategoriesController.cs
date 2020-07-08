@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LojaAPI.Dao;
 using LojaAPI.Models;
+using System.IO;
 
 namespace LojaAPI.Controllers
 {
@@ -41,39 +42,6 @@ namespace LojaAPI.Controllers
             return category;
         }
 
-        
-        // PUT: api/Categories/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutCategory(Guid id, Category category)
-        {
-            if (id != category.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(category).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CategoryExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
         // POST: api/Categories
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
@@ -96,10 +64,25 @@ namespace LojaAPI.Controllers
                 return NotFound();
             }
 
+            var prts = _context.Products.Where(x => x.CategoryId == id);
+
+            if (prts != null)
+            {
+                foreach (var prt in prts)
+                {
+                    var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", prt.Image);
+                    if (System.IO.File.Exists(path))
+                    {
+                        System.IO.File.Delete(path);
+                    }
+                }
+                _context.Products.RemoveRange(prts);
+            }
+
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync();
 
-            return category;
+            return NoContent();
         }
 
         private bool CategoryExists(Guid id)
