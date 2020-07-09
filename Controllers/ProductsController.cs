@@ -57,20 +57,18 @@ namespace LojaAPI.Controllers
             var productUpdate = await _context.Products.FindAsync(id);
             if (!ModelState.IsValid) return BadRequest();
 
-            if (!String.IsNullOrEmpty(product.Image))
+            if (String.IsNullOrEmpty(product.Image))
             {
-                if (!System.IO.File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", product.Image)))
-                {
-                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", productUpdate.Image);
-
-                    System.IO.File.Delete(filePath);
-
-                    productUpdate.Image = product.Image;
-                }
+                productUpdate.Image = productUpdate.Image;
             }
             else
             {
-                productUpdate.Image = productUpdate.Image;
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", productUpdate.Image);
+
+                System.IO.File.Delete(filePath);
+
+                productUpdate.Image = product.Image;
+
             }
 
             productUpdate.CategoryId = product.CategoryId;
@@ -134,18 +132,15 @@ namespace LojaAPI.Controllers
 
         [RequestSizeLimit(40000000)]
         [HttpPost("imageUp")]
-        public async Task<IActionResult> UploadImage()
+        public async Task<IActionResult> UploadImage([FromForm] IFormFile file)
         {
             try
             {
-                var file = Request.Form.Files[0];
-
                 var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", file.FileName);
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                     await stream.FlushAsync();
-
                 }
 
                 return Ok();
