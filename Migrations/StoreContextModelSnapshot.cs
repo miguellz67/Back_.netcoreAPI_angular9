@@ -58,7 +58,6 @@ namespace LojaAPI.Migrations
                         .HasColumnType("text");
 
                     b.Property<byte[]>("Image")
-                        .IsRequired()
                         .HasColumnType("mediumblob");
 
                     b.Property<string>("Model")

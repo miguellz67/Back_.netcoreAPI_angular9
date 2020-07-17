@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace LojaAPI.Migrations
 {
-    public partial class MudancaTipoId : Migration
+    public partial class final : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -32,8 +32,7 @@ namespace LojaAPI.Migrations
                     Brand = table.Column<string>(nullable: false),
                     Price = table.Column<decimal>(nullable: false),
                     Amount = table.Column<int>(nullable: false),
-                    Image = table.Column<string>(nullable: false),
-                    ImageUpload = table.Column<byte[]>(type: "mediumblob", nullable: false)
+                    Image = table.Column<byte[]>(type: "mediumblob", nullable: true)
                 },
                 constraints: table =>
                 {
