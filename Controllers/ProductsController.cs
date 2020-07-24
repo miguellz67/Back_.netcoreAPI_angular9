@@ -54,22 +54,37 @@ namespace LojaAPI.Controllers
                 return BadRequest();
             }
 
-            var produtoAtualizacao = await _context.Products.FindAsync(id);
+            var productUpdate = await _context.Products.FindAsync(id);
             if (!ModelState.IsValid) return BadRequest();
 
-            produtoAtualizacao.CategoryId = product.CategoryId;
-            produtoAtualizacao.Name = product.Name;
-            produtoAtualizacao.Description = product.Description;
-            produtoAtualizacao.Price = product.Price;
-            produtoAtualizacao.Brand = product.Brand;
-            produtoAtualizacao.Model = product.Model;
-            
-            _context.Products.Update(produtoAtualizacao);
-            await _context.SaveChangesAsync();
-            
+            if (String.IsNullOrEmpty(product.Image))
+            {
+                productUpdate.Image = productUpdate.Image;
+            }
+            else
+            {
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", productUpdate.Image);
 
-          
-             return NoContent();
+                System.IO.File.Delete(filePath);
+
+                productUpdate.Image = product.Image;
+
+            }
+
+            productUpdate.CategoryId = product.CategoryId;
+            productUpdate.Name = product.Name;
+            productUpdate.Description = product.Description;
+            productUpdate.Price = product.Price;
+            productUpdate.Brand = product.Brand;
+            productUpdate.Model = product.Model;
+            productUpdate.Amount = product.Amount;
+
+
+            _context.Products.Update(productUpdate);
+            await _context.SaveChangesAsync();
+
+
+            return NoContent();
         }
 
         // POST: api/Products
@@ -95,6 +110,15 @@ namespace LojaAPI.Controllers
                 return NotFound();
             }
 
+            string imgNm = product.Image;
+
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", imgNm);
+
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
 
@@ -108,36 +132,24 @@ namespace LojaAPI.Controllers
 
         [RequestSizeLimit(40000000)]
         [HttpPost("imageUp")]
-        public async Task<IActionResult> UploadImage(IFormFile arquivo, string imgNome)
+        public async Task<IActionResult> UploadImage([FromForm] IFormFile file)
         {
-            if (arquivo.Length > 0)
+            try
             {
-                try
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", file.FileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    imgNome = Guid.NewGuid() + "_";
-                    imgNome = Path.Combine(imgNome, arquivo.FileName);
-
-                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", imgNome);
-
-                    if (System.IO.File.Exists(filePath))
-                    {
-                        return BadRequest();
-                    }
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await arquivo.CopyToAsync(stream);
-                        await stream.FlushAsync();
-                        
-                    }
-                }
-                catch (Exception)
-                {
-                    return StatusCode(500);
+                    await file.CopyToAsync(stream);
+                    await stream.FlushAsync();
                 }
 
+                return Ok();
             }
-            return Ok();
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
+
         }
     }
 }

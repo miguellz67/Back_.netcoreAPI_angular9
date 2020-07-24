@@ -57,12 +57,7 @@ namespace LojaAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Image")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<byte[]>("ImageUpload")
-                        .IsRequired()
+                    b.Property<byte[]>("Image")
                         .HasColumnType("mediumblob");
 
                     b.Property<string>("Model")

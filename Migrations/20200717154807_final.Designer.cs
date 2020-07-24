@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LojaAPI.Migrations
 {
     [DbContext(typeof(StoreContext))]
-    [Migration("20200626222047_MudancaTipoId")]
-    partial class MudancaTipoId
+    [Migration("20200717154807_final")]
+    partial class final
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -59,12 +59,7 @@ namespace LojaAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Image")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<byte[]>("ImageUpload")
-                        .IsRequired()
+                    b.Property<byte[]>("Image")
                         .HasColumnType("mediumblob");
 
                     b.Property<string>("Model")

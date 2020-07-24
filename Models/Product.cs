@@ -27,12 +27,8 @@ namespace LojaAPI.Models
         [Required]
         public int Amount { get; set; }
         
-        [Required]
-        public string Image { get; set; }
-
-        [Required]
         [Column(TypeName = "mediumblob")]
-        public string ImageUpload { get; set; }
+        public string Image { get; set; }
         public Category Category { get; set; }
     }
 }
